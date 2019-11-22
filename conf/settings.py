@@ -122,3 +122,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 API_KEY = 'AIzaSyAwDp7hXQSuXmfaFoWTDCWpqqlZJdIeBEw'
 QUERY = 'cricket'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 25
+}
