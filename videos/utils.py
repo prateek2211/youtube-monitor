@@ -2,7 +2,7 @@ import requests
 from videos.models import Video
 from django.conf import settings
 from rest_framework import status
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class Client(object):
@@ -26,7 +26,7 @@ class Client(object):
             if page_token == 'BEGIN':
                 page_token = ''
             params['pageToken'] = page_token
-            resp = requests.get(url=self.url, params=params, timeout=5, )
+            resp = requests.get(url=self.url, params=params, timeout=5)
             print('Visiting page', resp.status_code)
             if resp.status_code == status.HTTP_200_OK:
                 items = resp.json()['items']
@@ -51,6 +51,9 @@ class Client(object):
                         thumbnail=data['thumbnails']['default']['url'],
                         channel_title=data['channelTitle']
                     ))
+            elif resp.status_code == status.HTTP_403_FORBIDDEN:
+                    print('API token limit expired')
+
         Video.objects.bulk_create(videos)
 
     def cron_job(self):
@@ -58,6 +61,6 @@ class Client(object):
         if last_record:
             last_record_time = last_record[0]
         else:
-            last_record_time = datetime.strptime('2019-11-23T00:09:08.000Z', '%Y-%m-%dT%H:%M:%S.%fZ')
+            last_record_time = datetime.now() - timedelta(hours=5)
 
         self.fetch_and_save(last_record_time)

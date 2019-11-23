@@ -1,22 +1,33 @@
 # Backend-Assignment
 ---
-## Setup the project
+## Setup Instructions
+* Setup virtual environment
 ```bash
 virtualenv -p python3 venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
-## Run database migrations
+* Install RabbitMQ
+```bash
+sudo apt install rabbitmq-server
+```
+
+* Run database migrations
 ```bash
 python manage.py makemigrations
 python manage,py migrate
 ```
-## Create user
+* Create superuser
 ```bash
 python manage.py createsuperuser
 ```
+* Start celery worker process
+```bash
+celery -A conf worker -B
+```
 
-## Run server
+* To run server open new terminal and enter the following command: 
 ```bash
 python manage.py runserver
 ```
+**Now open the browser and visit [this](http://127.0.0.1:8000/api/videos/) link to browse API**

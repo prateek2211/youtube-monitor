@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'rest_framework',
+    'django_celery_beat',
     'videos.apps.VideosConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -128,3 +129,5 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 25
 }
+
+CELERY_BROKER_URL = 'amqp://localhost'
