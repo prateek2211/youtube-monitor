@@ -8,14 +8,11 @@ from datetime import datetime
 class Client(object):
     url = 'https://www.googleapis.com/youtube/v3/search'
 
-    def __init__(self, username, password):
-        self.username, self.password = username, password
-
-    def fetch(self, after_timestamp):
+    def fetch_and_save(self, after_timestamp):
         page_token = 'BEGIN'
         params = {
             'part': 'snippet',
-            'maxResults': 25,
+            'maxResults': 50,
             'order': 'date',
             'q': settings.QUERY,
             'type': 'video',
@@ -29,20 +26,22 @@ class Client(object):
             if page_token == 'BEGIN':
                 page_token = ''
             params['pageToken'] = page_token
-            resp = requests.get(url=self.url, params=params, timeout=1, )
-            print('Visiting token', resp.request.params['pageToken'])
+            resp = requests.get(url=self.url, params=params, timeout=5, )
+            print('Visiting page', resp.status_code)
             if resp.status_code == status.HTTP_200_OK:
-                if 'nextPageToken' in resp.json():
+                items = resp.json()['items']
+                # check items as page token can be present even if no results after this page
+                if 'nextPageToken' in resp.json() and items:
                     page_token = resp.json()['nextPageToken']
                 else:
                     page_token = ''
-                items = resp.json()['items']
 
                 for item in items:
                     data = item['snippet']
                     # response is not correct if time is near to last upload video time
                     # check for incorrect response
-                    if after_timestamp > datetime.strptime(data['publishedAt'], '%Y-%m-%dT%H:%M:%S.%fZ'):
+                    if after_timestamp.replace(tzinfo=None) >= datetime.strptime(data['publishedAt'],
+                                                                                 '%Y-%m-%dT%H:%M:%S.%fZ'):
                         page_token = ''
                         break
                     videos.append(Video(
@@ -54,5 +53,11 @@ class Client(object):
                     ))
         Video.objects.bulk_create(videos)
 
-# 2019-11-22T21:50:37Z
-# 2019-11-22T22:50:37Z
+    def cron_job(self):
+        last_record = Video.objects.values_list('publish_time').first()
+        if last_record:
+            last_record_time = last_record[0]
+        else:
+            last_record_time = datetime.strptime('2019-11-23T00:09:08.000Z', '%Y-%m-%dT%H:%M:%S.%fZ')
+
+        self.fetch_and_save(last_record_time)
