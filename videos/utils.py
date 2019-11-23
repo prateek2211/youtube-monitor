@@ -7,6 +7,10 @@ from datetime import datetime, timedelta
 
 class Client(object):
     url = 'https://www.googleapis.com/youtube/v3/search'
+    expired_keys = {}
+
+    def __init__(self):
+        self.current_api_key = settings.API_KEYS[0]
 
     def fetch_and_save(self, after_timestamp):
         page_token = 'BEGIN'
@@ -17,7 +21,7 @@ class Client(object):
             'q': settings.QUERY,
             'type': 'video',
             'pageToken': page_token,
-            'key': settings.API_KEY,
+            'key': self.current_api_key,
             'publishedAfter': after_timestamp.strftime('%Y-%m-%dT%H:%M:%SZ')
         }
         videos = []
@@ -52,8 +56,12 @@ class Client(object):
                         channel_title=data['channelTitle']
                     ))
             elif resp.status_code == status.HTTP_403_FORBIDDEN:
-                    print('API token limit expired')
+                print('API key quota expired\nUsing new keys...')
+                self.change_api_key()
+                self.fetch_and_save(after_timestamp)
 
+            else:
+                raise Exception('could not connect to server')
         Video.objects.bulk_create(videos)
 
     def cron_job(self):
@@ -64,3 +72,20 @@ class Client(object):
             last_record_time = datetime.now() - timedelta(hours=5)
 
         self.fetch_and_save(last_record_time)
+
+    def change_api_key(self):
+        # save the expiry time of current token as it gets valid again after 24 hrs
+        self.expired_keys[self.current_api_key] = datetime.now()
+        all_keys = settings.API_KEYS
+        available = False
+        for key in all_keys:
+            if not (key in self.expired_keys):
+                self.current_api_key = key
+                available = True
+                break
+            elif datetime.now() - self.expired_keys[key] > timedelta(days=1):
+                del self.expired_keys[key]
+                self.current_api_key = key
+                available = True
+        if not available:
+            raise Exception('no key with remaining quota')
