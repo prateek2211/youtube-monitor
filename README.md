@@ -41,3 +41,4 @@ $ celery -A conf worker -B
 $ python manage.py runserver
 ```
 **Now open the browser and visit [this](http://127.0.0.1:8000/api/videos/) link to browse API**
+![screenshot](https://user-images.githubusercontent.com/42961174/69479665-c9c60c80-0e25-11ea-81d9-426e67949bc2.png)
