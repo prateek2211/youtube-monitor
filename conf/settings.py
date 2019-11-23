@@ -121,7 +121,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-API_KEYS = ['AIzaSyCxxPE1XZf868hFKniPI1Gs7cyBZJcU7-8',]
+API_KEYS = [<YOUR API KEY HERE>]
 QUERY = 'cricket'
 
 

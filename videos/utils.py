@@ -61,7 +61,7 @@ class Client(object):
                 self.fetch_and_save(after_timestamp)
 
             else:
-                raise Exception('could not connect to server')
+                raise Exception('could not connect to server. please check your API key')
         Video.objects.bulk_create(videos)
 
     def cron_job(self):
