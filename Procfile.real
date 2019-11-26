@@ -1,0 +1,2 @@
+web: gunicorn conf.wsgi
+worker: celery worker -A conf -B
